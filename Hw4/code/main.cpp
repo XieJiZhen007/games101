@@ -33,21 +33,6 @@ void naive_bezier(const std::vector<cv::Point2f> &points, cv::Mat &window)
 cv::Point2f recursive_bezier(const std::vector<cv::Point2f> &control_points, float t) 
 {
     // TODO: Implement de Casteljau's algorithm
-    // auto &p_0 = control_points[0];
-    // auto &p_1 = control_points[1];
-    // auto &p_2 = control_points[2];
-    // auto &p_3 = control_points[3];
-
-    // cv::Point2f point = {0.0, 0.0};
-    // for (int i = 0; i < control_points.size(); i++) {
-    //     point += control_points[i] * std::pow(1-t, control_points.size()-i) * std::pow(t, i);
-    // }
-    // return cv::Point2f();
-
-    // auto point = std::pow(1 - t, 3) * p_0 + 3 * t * std::pow(1 - t, 2) * p_1 +
-    //              3 * std::pow(t, 2) * (1 - t) * p_2 + std::pow(t, 3) * p_3;
-
-    // return point;
     if (control_points.size() == 1) return control_points[0];
 
     std::vector<cv::Point2f> points;
