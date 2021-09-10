@@ -97,7 +97,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     if (payload.texture)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
-
+        return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -125,6 +125,26 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        // 光照方向，从反射点指向光源，因为只需要方向，对方向进行归一化
+        auto light_dir = (light.position - point).normalized();
+        auto view_dir = (eye_pos - point).normalized();
+        // 点光源到反射点半径的平方
+        float rr = (light.position - point).squaredNorm();
+
+        Vector3f ambient(0, 0, 0);
+        Vector3f diffuse(0, 0, 0);
+        Vector3f specular(0, 0, 0);
+
+        for (int i = 0; i < 3; i++) {
+            float intensity = light.intensity[i] / rr;
+            auto h = (view_dir + light_dir).normalized();    // 半程向量
+
+            ambient[i] = ka[i] * amb_light_intensity[i];
+            diffuse[i] = kd[i] * intensity * std::max(0.0f, normal.dot(light_dir));
+            specular[i] = ks[i] * intensity * std::pow(std::max(0.0f, normal.dot(h)), p);
+        }
+
+        result_color += ambient + diffuse + specular;
 
     }
 
@@ -155,7 +175,26 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
-        
+        // 光照方向，从反射点指向光源，因为只需要方向，对方向进行归一化
+        auto light_dir = (light.position - point).normalized();
+        auto view_dir = (eye_pos - point).normalized();
+        // 点光源到反射点半径的平方
+        float rr = (light.position - point).squaredNorm();
+
+        Vector3f ambient(0, 0, 0);
+        Vector3f diffuse(0, 0, 0);
+        Vector3f specular(0, 0, 0);
+
+        for (int i = 0; i < 3; i++) {
+            float intensity = light.intensity[i] / rr;
+            auto h = (view_dir + light_dir).normalized();    // 半程向量
+
+            ambient[i] = ka[i] * amb_light_intensity[i];
+            diffuse[i] = kd[i] * intensity * std::max(0.0f, normal.dot(light_dir));
+            specular[i] = ks[i] * intensity * std::pow(std::max(0.0f, normal.dot(h)), p);
+        }
+
+        result_color += ambient + diffuse + specular;
     }
 
     return result_color * 255.f;
@@ -195,7 +234,17 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     // Vector ln = (-dU, -dV, 1)
     // Position p = p + kn * n * h(u,v)
     // Normal n = normalize(TBN * ln)
+    float x = normal.x();
+    float y = normal.y();
+    float z = normal.z();
+    float u = payload.tex_coords.x();
+    float v = payload.tex_coords.y();
 
+    auto n = normal;
+    Vector3f t = {x*y/sqrt(x*x+z*z),sqrt(x*x+z*z),z*y/sqrt(x*x+z*z)};
+    Vector3f b = n.cross(t);
+    auto TBN = {t, b, n};
+    // auto dU = kh * kn * ()
 
     Eigen::Vector3f result_color = {0, 0, 0};
 
@@ -203,8 +252,26 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
+        // 光照方向，从反射点指向光源，因为只需要方向，对方向进行归一化
+        auto light_dir = (light.position - point).normalized();
+        auto view_dir = (eye_pos - point).normalized();
+        // 点光源到反射点半径的平方
+        float rr = (light.position - point).squaredNorm();
 
+        Vector3f ambient(0, 0, 0);
+        Vector3f diffuse(0, 0, 0);
+        Vector3f specular(0, 0, 0);
 
+        for (int i = 0; i < 3; i++) {
+            float intensity = light.intensity[i] / rr;
+            auto h = (view_dir + light_dir).normalized();    // 半程向量
+
+            ambient[i] = ka[i] * amb_light_intensity[i];
+            diffuse[i] = kd[i] * intensity * std::max(0.0f, normal.dot(light_dir));
+            specular[i] = ks[i] * intensity * std::pow(std::max(0.0f, normal.dot(h)), p);
+        }
+
+        result_color += ambient + diffuse + specular;
     }
 
     return result_color * 255.f;
