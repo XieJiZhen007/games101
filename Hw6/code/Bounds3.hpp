@@ -97,6 +97,28 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
     // TODO test if ray bound intersects
     
+    // o + t*d = p
+    // t = (p-o) / d
+    auto tx_min = (pMin.x - ray.origin.x) * invDir.x;
+    auto tx_max = (pMax.x - ray.origin.x) * invDir.x;
+    // ???
+    if (dirIsNeg[0] <= 0)
+        std::swap(tx_min, tx_max);
+
+    auto ty_min = (pMin.y - ray.origin.y) * invDir.y;
+    auto ty_max = (pMax.y - ray.origin.y) * invDir.y;
+    if (dirIsNeg[1] <= 0)
+        std::swap(ty_min, ty_max);
+
+    auto tz_min = (pMin.z - ray.origin.z) * invDir.z;
+    auto tz_max = (pMax.z - ray.origin.z) * invDir.z;
+    if (dirIsNeg[2] <= 0)
+        std::swap(tz_min, tz_max);
+
+    auto t_enter = std::max(tx_min, std::max(ty_min, tz_min));
+    auto t_exit  = std::min(tx_max, std::max(ty_max, ty_max));
+
+    return t_enter < t_exit && t_exit >= 0;
 }
 
 inline Bounds3 Union(const Bounds3& b1, const Bounds3& b2)

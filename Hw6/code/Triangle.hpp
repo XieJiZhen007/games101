@@ -233,8 +233,16 @@ inline Intersection Triangle::getIntersection(Ray ray)
 
     // TODO find ray triangle intersection
 
+    if (t_tmp < 0)
+        return inter;
 
-
+    // 满足以上条件，说明光线与三角形发生碰撞，更新碰撞点的信息
+    inter.happened = true;
+    inter.coords = Vector3f(ray.origin + t_tmp*ray.direction);
+    inter.normal = normal;
+    inter.distance = t_tmp;
+    inter.obj = this;
+    inter.m = m;
 
     return inter;
 }
