@@ -253,6 +253,17 @@ inline Intersection Triangle::getIntersection(Ray ray)
     t_tmp = dotProduct(e2, qvec) * det_inv;
 
     // TODO find ray triangle intersection
+    // 因为光线是射线，所以当 t < 0 时，光与三角形无交点
+    if (t_tmp < 0)
+        return inter;
+
+    // 三角形与光线有交点
+    inter.happened = true;
+    inter.coords = Vector3f(ray.origin + t_tmp*ray.direction);
+    inter.normal = normal;
+    inter.distance = t_tmp;
+    inter.obj = this;
+    inter.m = m;
 
     return inter;
 }
