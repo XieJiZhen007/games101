@@ -17,23 +17,6 @@ static void RenderThread(const Scene& scene, std::vector<Vector3f> &framebuffer,
     float scale = tan(deg2rad(scene.fov * 0.5));
     float imageAspectRatio = scene.width / (float)scene.height;
     Vector3f eye_pos(278, 273, -800);
-    int m = 0;
-
-    // for (uint32_t j = 0; j < scene.height; ++j) {
-    //     for (uint32_t i = 0; i < scene.width; ++i) {
-    //         // generate primary ray direction
-    //         float x = (2 * (i + 0.5) / (float)scene.width - 1) *
-    //                   imageAspectRatio * scale;
-    //         float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
-
-    //         Vector3f dir = normalize(Vector3f(-x, y, 1));
-    //         for (int k = 0; k < spp; k++){
-    //             framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
-    //         }
-    //         m++;
-    //     }
-    //     UpdateProgress(j / (float)scene.height);
-    // }
 
     for (int j = yStart; j < yEnd; ++j) {
         for (int i = 0; i < scene.width; ++i) {
@@ -116,41 +99,3 @@ void Renderer::Render(const Scene& scene)
     }
     fclose(fp);    
 }
-
-// void RenderThread(const Scene& scene, std::vector<Vector3f> &framebuffer, int yStart, int yEnd, int spp)
-// {
-//     float scale = tan(deg2rad(scene.fov * 0.5));
-//     float imageAspectRatio = scene.width / (float)scene.height;
-//     Vector3f eye_pos(278, 273, -800);
-//     int m = 0;
-
-//     // for (uint32_t j = 0; j < scene.height; ++j) {
-//     //     for (uint32_t i = 0; i < scene.width; ++i) {
-//     //         // generate primary ray direction
-//     //         float x = (2 * (i + 0.5) / (float)scene.width - 1) *
-//     //                   imageAspectRatio * scale;
-//     //         float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
-
-//     //         Vector3f dir = normalize(Vector3f(-x, y, 1));
-//     //         for (int k = 0; k < spp; k++){
-//     //             framebuffer[m] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
-//     //         }
-//     //         m++;
-//     //     }
-//     //     UpdateProgress(j / (float)scene.height);
-//     // }
-
-//     for (int j = yStart; j < yEnd; ++j) {
-//         for (int i = 0; i < scene.width; ++i) {
-//             float x = (2 * (i + 0.5) / (float)scene.width - 1) *
-//                       imageAspectRatio * scale;
-//             float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
-
-//             Vector3f dir = normalize(Vector3f(-x, y, 1));
-//             for (int k = 0; k < spp; k++){
-//                 framebuffer[j * scene.height + i] += scene.castRay(Ray(eye_pos, dir), 0) / spp;  
-//             }
-//         }
-//         UpdateProgress(j / (float)scene.height);
-//     }
-// }
