@@ -73,6 +73,9 @@ Vector3f Scene::shade(const Intersection &p, const Vector3f& wo) const
 {
     const float& eps = 5e-4;
     
+    if (p.m->hasEmission())
+        return p.m->getEmission();
+
     Vector3f L_dir = {0.0f};
     Vector3f L_indir = {0.0f};
 
@@ -85,7 +88,6 @@ Vector3f Scene::shade(const Intersection &p, const Vector3f& wo) const
     if ((intersect(Ray(p.coords, ws)).coords - x.coords).norm() < eps) 
     {
         auto emit = x.emit;
-        // 为什么入射光是 ws，而不是 -ws，同理出射光为什么不是 wo
         auto f_r = p.m->eval(ws, -wo, p.normal);
         auto cosn = std::max(0.0f, dotProduct(p.normal, ws));
         auto cosnn = std::max(0.0f, dotProduct(x.normal, -ws));
@@ -94,55 +96,20 @@ Vector3f Scene::shade(const Intersection &p, const Vector3f& wo) const
         L_dir = emit * f_r * cosn * cosnn / dist / pdf_light;
     }
 
-    return L_dir;
+    // 间接光照
+    if (get_random_float() < RussianRoulette)
+    {
+        Vector3f wi = p.m->sample(wo, p.normal);
+
+        Intersection q = intersect(Ray(p.coords, wi));
+        if (q.happened && q.m->hasEmission() == false)
+        {
+            auto cosn = std::max(0.0f, dotProduct(p.normal, wi));
+            auto f_r = p.m->eval(wi, -wo, p.normal);
+            auto pdf = p.m->pdf(wi, -wo, p.normal);
+            L_indir = shade(q, wi.normalized()) * f_r * cosn / pdf / RussianRoulette;
+        }
+    }
+
+    return L_dir + L_indir;
 }
-
-// Vector3f Scene::shade(const Intersection &isec, const Ray &ray) const {
-//     static const double eps = 5e-4;
-
-//     Material *m = isec.m;
-//     Vector3f normal = isec.normal;
-
-//     // isec is on the light
-//     if (m->hasEmission())
-//         return m->getEmission();
-
-//     auto L_dir = Vector3f(0.0, 0.0, 0.0);
-//     auto L_indir = Vector3f(0.0, 0.0, 0.0);
-
-//     // direct light
-//     Intersection pos;
-//     float pdf;
-//     sampleLight(pos, pdf);
-
-//     auto ws = (pos.coords - isec.coords).normalized();
-//     bool notBlocked = (intersect(Ray(isec.coords, ws)).coords - pos.coords).norm() < eps;
-//     bool hasDirectLight = false;
-
-//     if (notBlocked) {
-//         auto dist = pow((pos.coords - isec.coords).norm(), 2);
-//         double cos1 = std::max(0.0f, dotProduct(ws, normal));
-//         double cos2 = std::max(0.0f, dotProduct(-ws, pos.normal));
-//         L_dir = pos.emit * m->eval(ws, -ray.direction, normal) * cos1 * cos2 / pdf / dist;
-        
-//         // due to sometimes we won't get the correct ray to reflect light in the specular surface.
-//         // thus, we let the ray to choose it's own directon.
-//         hasDirectLight = L_dir.norm() > 0.1; 
-//     }
-
-//     // indirect light
-//     if (get_random_float() <= RussianRoulette) {
-//         auto wi = m->sample(ray.direction, normal);
-
-//         Ray ray2(isec.coords, wi);
-//         Intersection pos2 = intersect(ray2);
-
-//         if (pos2.happened && (!hasDirectLight || !pos2.m->hasEmission())) {
-//             double cos1 = std::max(0.0f, dotProduct(wi, normal));
-//             L_indir = shade(pos2, ray2) * m->eval(wi, -ray.direction, normal) * cos1 / std::max(m->pdf(wi, -ray.direction, normal), 0.0001f) / RussianRoulette;
-//         }
-//     }
-
-//     return Vector3f::Max(Vector3f::Min(L_dir + L_indir, Vector3f(1.0f)), Vector3f(0.0f));
-//     // return L_dir + L_indir;
-// }

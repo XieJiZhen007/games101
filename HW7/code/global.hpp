@@ -28,13 +28,28 @@ inline  bool solveQuadratic(const float &a, const float &b, const float &c, floa
     return true;
 }
 
+class Random {
+public:
+    Random(): dev(), rng(dev()), dist(0.f, 1.f) {}
+    float get_random_number() {
+        return dist(rng);
+    }
+private:
+    std::random_device dev;
+    std::mt19937 rng;
+    std::uniform_real_distribution<float> dist;
+};
+
 inline float get_random_float()
 {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_real_distribution<float> dist(0.f, 1.f); // distribution in range [1, 6]
+    // old code
+    // std::random_device dev;
+    // std::mt19937 rng(dev());
+    // std::uniform_real_distribution<float> dist(0.f, 1.f); // distribution in range [1, 6]
 
-    return dist(rng);
+    // return dist(rng);
+    thread_local static Random r;
+    return r.get_random_number();
 }
 
 inline void UpdateProgress(float progress)
